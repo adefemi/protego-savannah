@@ -362,32 +362,9 @@ SELECT * FROM page_visits LIMIT 10;
 - **API Utilities**: Centralized API communication logic for consistency
 - **Type Definitions**: Shared types across content script, background, and UI
 
-## 🔮 Future Enhancements
-
-### Features
-- Export visit history to CSV/JSON
-- Search and filter capabilities
-- Data visualization (charts, graphs using D3.js or Chart.js)
-- Visit frequency analysis
-- Category tagging for pages
-- Dark mode support
-- Keyboard shortcuts
-
-### Technical
-- Unit tests (Jest + React Testing Library)
-- E2E tests (Playwright)
-- Storybook for component documentation
-- CI/CD pipeline (GitHub Actions)
-- ESLint + Prettier configuration
-- Pre-commit hooks with Husky
-
 ## 📄 License
 
 This project is for educational and evaluation purposes.
-
-## 👤 Author
-
-Built as part of the Covered Home Exercise.
 
 ---
 

@@ -1,0 +1,80 @@
+.visit-history {
+  background: rgba(255, 255, 255, 0.95);
+  margin: 1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+
+  h2 {
+    font-size: 1.1rem;
+    color: #667eea;
+    margin: 0 0 1rem 0;
+  }
+
+  .no-visits {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+    font-style: italic;
+  }
+
+  .visits-list {
+    max-height: 400px;
+    overflow-y: auto;
+
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 4px;
+
+      &:hover {
+        background: #5568d3;
+      }
+    }
+  }
+
+  .visit-item {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #f9f9f9;
+    }
+
+    .visit-date {
+      font-size: 0.9rem;
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .visit-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #666;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+    }
+  }
+}
+

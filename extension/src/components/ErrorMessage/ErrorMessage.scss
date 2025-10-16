@@ -1,0 +1,34 @@
+.error {
+  background: rgba(255, 255, 255, 0.95);
+  margin: 1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+
+  p {
+    color: #e74c3c;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .retry-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #5568d3;
+    }
+
+    &:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+    }
+  }
+}
+

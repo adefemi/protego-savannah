@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Protego History Sidepanel",
+  "version": "1.0.0",
+  "description": "Track page visit history and view analytics in a side panel",
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open History Sidepanel"
+  }
+}
+

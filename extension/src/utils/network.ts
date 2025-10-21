@@ -17,6 +17,11 @@ export const fetchWithRetry = async (url: string, options?: RequestInit, retries
       // Retry on server errors (5xx) or network issues
       throw new Error(`Server error: ${response.status} ${response.statusText}`);
     } catch (error) {
+      // Don't retry on client errors (4xx) - rethrow immediately
+      if (error instanceof Error && error.message.includes('Client error:')) {
+        throw error;
+      }
+      
       attempt++;
       if (attempt >= retries) {
         throw error;

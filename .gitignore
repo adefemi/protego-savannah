@@ -43,3 +43,4 @@ postgres_data/
 .coverage
 .coverage.*
 htmlcov/
+coverage/

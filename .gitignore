@@ -39,3 +39,7 @@ extension/dist/
 # Docker
 postgres_data/
 
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/

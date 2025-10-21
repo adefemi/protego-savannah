@@ -7,17 +7,25 @@ import React from 'react';
 import './ErrorMessage.scss';
 
 interface ErrorMessageProps {
-  message: string;
-  onRetry: () => void;
+  message?: string;
+  onRetry?: () => void;
+  title?: string;
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry }) => {
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ 
+  message = 'An unexpected error occurred. Please try again.', 
+  onRetry,
+  title = 'Oops, something went wrong!',
+}) => {
   return (
     <div className="error">
-      <p>❌ {message}</p>
-      <button onClick={onRetry} className="retry-btn">
-        Retry
-      </button>
+      <h3>{title}</h3>
+      <p>{message}</p>
+      {onRetry && (
+        <button onClick={onRetry} className="retry-btn">
+          Retry
+        </button>
+      )}
     </div>
   );
 };

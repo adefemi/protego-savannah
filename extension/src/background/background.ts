@@ -3,10 +3,8 @@
  * Handles communication between content scripts, side panel, and the FastAPI backend
  */
 
-import { ChromeMessage, ChromeResponse, PageMetricsData, PageVisit, PageMetrics } from '../types';
-
-// Backend API base URL
-const API_BASE_URL = 'http://localhost:8000';
+import { ChromeMessage, ChromeResponse } from '../types';
+import { savePageVisit, getVisits, getMetrics } from '../utils/apiService';
 
 /**
  * Listens for messages from content scripts and side panel
@@ -57,71 +55,6 @@ chrome.runtime.onMessage.addListener((
 
   return false;
 });
-
-/**
- * Saves a page visit to the backend API
- * @param data - Page metrics data to save
- * @returns Promise with the saved visit data
- */
-async function savePageVisit(data: PageMetricsData): Promise<PageVisit> {
-  const response = await fetch(`${API_BASE_URL}/api/visits`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return await response.json();
-}
-
-/**
- * Fetches all visits for a given URL from the backend API
- * @param url - The URL to fetch visits for
- * @returns Promise with array of visits
- */
-async function getVisits(url: string): Promise<PageVisit[]> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/visits?url=${encodeURIComponent(url)}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch visits:', error);
-    throw error;
-  }
-}
-
-/**
- * Fetches current metrics for a given URL from the backend API
- * @param url - The URL to fetch metrics for
- * @returns Promise with page metrics
- */
-async function getMetrics(url: string): Promise<PageMetrics> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/metrics/current?url=${encodeURIComponent(url)}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch metrics:', error);
-    throw error;
-  }
-}
 
 /**
  * Opens the side panel when the extension icon is clicked

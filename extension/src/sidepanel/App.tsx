@@ -17,13 +17,31 @@ import {
 } from '../components';
 import './App.scss';
 
+interface ErrorState {
+  title: string;
+  message: string;
+  isRetriable: boolean;
+}
+
 const App: React.FC = () => {
   // State management
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const [metrics, setMetrics] = useState<PageMetrics | null>(null);
   const [visits, setVisits] = useState<PageVisit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
+
+  /**
+   * Sets the error state
+   */
+  const handleError = (
+    title: string,
+    message: string,
+    isRetriable: boolean
+  ) => {
+    setError({ title, message, isRetriable });
+    setLoading(false);
+  };
 
   /**
    * Loads the current tab and fetches its data
@@ -34,7 +52,8 @@ const App: React.FC = () => {
 
       if (!tab?.url) {
         console.error('❌ No tab URL found');
-        throw new Error('Unable to get current tab URL');
+        handleError('Error', 'Unable to get current tab URL.', false);
+        return;
       }
 
       // Check if URL is a Chrome internal page
@@ -44,8 +63,11 @@ const App: React.FC = () => {
           tab.url.startsWith('about:')) {
         console.warn('⚠️ Chrome internal page detected');
         setCurrentUrl(tab.url);
-        setError('Cannot track Chrome internal pages. Please navigate to a regular website.');
-        setLoading(false);
+        handleError(
+          'Unsupported Page',
+          'Cannot track Chrome internal or extension pages. Please navigate to a regular website.',
+          false
+        );
         return;
       }
       
@@ -53,8 +75,7 @@ const App: React.FC = () => {
       await loadData(tab.url);
     } catch (err) {
       console.error('❌ Error in loadCurrentTab:', err);
-      setError('Failed to get current tab');
-      setLoading(false);
+      handleError('Error', 'Failed to get current tab information.', true);
     }
   };
 
@@ -78,8 +99,12 @@ const App: React.FC = () => {
     } catch (err) {
       console.error('❌ Error in loadData:', err);
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to load data';
-      setError(`${errorMessage}. Make sure the backend is running.`);
+        err instanceof Error ? err.message : 'An unknown error occurred';
+      handleError(
+        'Network Error',
+        `${errorMessage}. Please check your connection and ensure the backend is running.`,
+        true
+      );
     } finally {
       setLoading(false);
     }
@@ -132,7 +157,11 @@ const App: React.FC = () => {
 
       {/* Error state */}
       {error && !loading && (
-        <ErrorMessage message={error} onRetry={handleRefresh} />
+        <ErrorMessage
+          title={error.title}
+          message={error.message}
+          onRetry={error.isRetriable ? handleRefresh : undefined}
+        />
       )}
 
       {/* Main content - only show when not loading and no errors */}

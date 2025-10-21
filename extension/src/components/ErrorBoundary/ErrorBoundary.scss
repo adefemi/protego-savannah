@@ -1,0 +1,20 @@
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #ff4d4d;
+  }
+
+  p {
+    font-size: 1rem;
+    color: #333;
+  }
+}

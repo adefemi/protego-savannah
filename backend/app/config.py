@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -18,5 +19,10 @@ class Settings(BaseSettings):
         case_sensitive = False
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
 

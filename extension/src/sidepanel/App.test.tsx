@@ -3,9 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import * as api from '../utils/api';
+import * as offlineCache from '../utils/offlineCache';
 import { PageMetrics, PageVisit } from '../types';
 
 vi.mock('../utils/api');
+vi.mock('../utils/offlineCache');
 
 describe('App', () => {
   const mockTab: chrome.tabs.Tab = {
@@ -47,6 +49,13 @@ describe('App', () => {
     chrome.tabs.onUpdated.removeListener = vi.fn();
     chrome.tabs.onActivated.addListener = vi.fn();
     chrome.tabs.onActivated.removeListener = vi.fn();
+    
+    // Mock offline cache functions
+    vi.mocked(offlineCache.getCachedMetrics).mockReturnValue(null);
+    vi.mocked(offlineCache.getCachedVisits).mockReturnValue(null);
+    vi.mocked(offlineCache.cacheMetrics).mockImplementation(() => {});
+    vi.mocked(offlineCache.cacheVisits).mockImplementation(() => {});
+    vi.mocked(offlineCache.clearCache).mockImplementation(() => {});
   });
 
   it('should render app with header and footer', async () => {

@@ -81,7 +81,7 @@ class TestPageVisitServiceGetVisits:
         visits = PageVisitService.get_visits_by_url(db, sample_url)
         
         assert len(visits) == 1
-        assert visits[0].url == sample_url
+        assert visits[0].url == "https://example.com/"  # URL is normalized
         assert visits[0].link_count == 10
 
     def test_get_visits_multiple(self, db, sample_url):

@@ -23,7 +23,7 @@ describe('background script', () => {
       actionListener = listener;
     });
 
-    chrome.sidePanel.open = vi.fn();
+    chrome.sidePanel.open = vi.fn().mockResolvedValue(undefined);
 
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -99,7 +99,10 @@ describe('background script', () => {
       const result = messageListener({ type: 'PAGE_METRICS' }, {}, sendResponse);
 
       expect(result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid message format',
+      });
     });
   });
 
@@ -171,7 +174,10 @@ describe('background script', () => {
       const result = messageListener({ type: 'GET_VISITS' }, {}, sendResponse);
 
       expect(result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid message format',
+      });
     });
 
     it('should return empty array when no visits found', async () => {
@@ -251,7 +257,10 @@ describe('background script', () => {
       const result = messageListener({ type: 'GET_METRICS' }, {}, sendResponse);
 
       expect(result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid message format',
+      });
     });
 
     it('should handle metrics with null last_visited', async () => {
@@ -286,7 +295,10 @@ describe('background script', () => {
       const result = messageListener({ type: 'UNKNOWN_TYPE' as any }, {}, sendResponse);
 
       expect(result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid message format',
+      });
     });
 
     it('should return false for empty message', () => {
@@ -294,7 +306,10 @@ describe('background script', () => {
       const result = messageListener({}, {}, sendResponse);
 
       expect(result).toBe(false);
-      expect(sendResponse).not.toHaveBeenCalled();
+      expect(sendResponse).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid message format',
+      });
     });
   });
 

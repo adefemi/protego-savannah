@@ -5,6 +5,7 @@ describe('content script', () => {
   let consoleErrorSpy: any;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     
     document.body.innerHTML = '';
@@ -23,6 +24,7 @@ describe('content script', () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    vi.useRealTimers();
     vi.resetModules();
   });
 
@@ -56,16 +58,15 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(sendMessageMock).toHaveBeenCalledWith(
       {
         type: 'PAGE_METRICS',
         data: {
-          url: 'https://example.com',
+          url: 'https://example.com/',
           link_count: 5,
           word_count: 8,
           image_count: 3,
@@ -84,10 +85,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.link_count).toBe(10);
@@ -102,10 +102,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.image_count).toBe(7);
@@ -120,10 +119,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.word_count).toBe(4);
@@ -136,16 +134,15 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(sendMessageMock).toHaveBeenCalledWith(
       {
         type: 'PAGE_METRICS',
         data: {
-          url: 'https://example.com',
+          url: 'https://example.com/',
           link_count: 0,
           word_count: 0,
           image_count: 0,
@@ -164,10 +161,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.word_count).toBe(2);
@@ -183,10 +179,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.url).toBe('https://different-site.com/path?query=test');
@@ -209,10 +204,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending metrics:', mockError);
   });
@@ -231,23 +225,17 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '❌ Error collecting metrics:',
       expect.any(Error)
     );
 
-    const callArgs = sendMessageMock.mock.calls[0][0];
-    expect(callArgs.data).toEqual({
-      url: 'https://example.com',
-      link_count: 0,
-      word_count: 0,
-      image_count: 0,
-    });
+    // When there's an error, the function returns null and doesn't send a message
+    expect(sendMessageMock).not.toHaveBeenCalled();
   });
 
   it('should use textContent when innerText is not available', async () => {
@@ -271,10 +259,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.word_count).toBe(4);
@@ -308,10 +295,9 @@ describe('content script', () => {
     });
 
     await import('./content');
-
-    await vi.waitFor(() => {
-      expect(sendMessageMock).toHaveBeenCalled();
-    });
+    
+    // Fast-forward past the debounce delay
+    await vi.advanceTimersByTimeAsync(2000);
 
     const callArgs = sendMessageMock.mock.calls[0][0];
     expect(callArgs.data.link_count).toBe(3);

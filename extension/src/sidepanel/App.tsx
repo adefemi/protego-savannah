@@ -3,18 +3,20 @@
  * Orchestrates all child components and manages application state
  */
 
-import React, { useState, useEffect } from 'react';
-import { PageVisit, PageMetrics } from '../types';
-import { getMetrics, getVisits, getCurrentTab } from '../utils/api';
+import React, { useEffect, useState } from 'react';
 import {
+  CurrentPage,
+  ErrorBoundary,
+  ErrorMessage,
+  Footer,
   Header,
   Loading,
-  ErrorMessage,
-  CurrentPage,
   MetricsGrid,
   VisitHistory,
-  Footer,
 } from '../components';
+import { PageMetrics, PageVisit } from '../types';
+import { deleteVisits, getCurrentTab, getMetrics, getVisits } from '../utils/api';
+import { cacheMetrics, cacheVisits, getCachedMetrics, getCachedVisits } from '../utils/offlineCache';
 import './App.scss';
 
 interface ErrorState {
@@ -88,7 +90,27 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      // Fetch metrics and visits in parallel for better performance
+      // Try to get from cache first
+      const cachedMetrics = getCachedMetrics(url);
+      const cachedVisits = getCachedVisits(url);
+
+      if (cachedMetrics && cachedVisits) {
+        setMetrics(cachedMetrics);
+        setVisits(cachedVisits);
+        setLoading(false);
+        
+        // Fetch fresh data in background
+        Promise.all([getMetrics(url), getVisits(url)])
+          .then(([metricsResponse, visitsResponse]) => {
+            setMetrics(metricsResponse);
+            setVisits(visitsResponse);
+            cacheMetrics(url, metricsResponse);
+            cacheVisits(url, visitsResponse);
+          })
+          .catch(() => {});
+        return;
+      }
+
       const [metricsResponse, visitsResponse] = await Promise.all([
         getMetrics(url),
         getVisits(url),
@@ -96,6 +118,10 @@ const App: React.FC = () => {
 
       setMetrics(metricsResponse);
       setVisits(visitsResponse);
+      
+      // Cache the results
+      cacheMetrics(url, metricsResponse);
+      cacheVisits(url, visitsResponse);
     } catch (err) {
       console.error('❌ Error in loadData:', err);
       const errorMessage =
@@ -107,6 +133,24 @@ const App: React.FC = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (): Promise<void> => {
+    if (!currentUrl) return;
+    
+    if (!confirm(`Delete all visit history for this page?\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteVisits(currentUrl);
+      setVisits([]);
+      setMetrics(null);
+    } catch (err) {
+      console.error('❌ Error deleting visits:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete history';
+      handleError('Delete Error', errorMessage, true);
     }
   };
 
@@ -149,32 +193,34 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="app">
-      <Header onRefresh={handleRefresh} />
+    <ErrorBoundary>
+      <div className="app">
+        <Header onRefresh={handleRefresh} />
 
-      {/* Loading state */}
-      {loading && <Loading />}
+        {/* Loading state */}
+        {loading && <Loading />}
 
-      {/* Error state */}
-      {error && !loading && (
-        <ErrorMessage
-          title={error.title}
-          message={error.message}
-          onRetry={error.isRetriable ? handleRefresh : undefined}
-        />
-      )}
+        {/* Error state */}
+        {error && !loading && (
+          <ErrorMessage
+            title={error.title}
+            message={error.message}
+            onRetry={error.isRetriable ? handleRefresh : undefined}
+          />
+        )}
 
-      {/* Main content - only show when not loading and no errors */}
-      {!loading && !error && (
+        {/* Main content - only show when not loading and no errors */}
+        {!loading && !error && (
         <>
           <CurrentPage url={currentUrl} />
           <MetricsGrid metrics={metrics} />
-          <VisitHistory visits={visits} />
+          <VisitHistory visits={visits} onDelete={handleDelete} />
         </>
-      )}
+        )}
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 };
 

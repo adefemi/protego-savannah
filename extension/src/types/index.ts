@@ -22,13 +22,29 @@ export interface PageMetricsData {
   image_count: number;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
 // Chrome Message Types
-export type MessageType = 'PAGE_METRICS' | 'GET_VISITS' | 'GET_METRICS';
+export type MessageType = 'PAGE_METRICS' | 'GET_VISITS' | 'GET_METRICS' | 'GET_VISITS_PAGINATED' | 'DELETE_VISITS';
 
 export interface ChromeMessage {
   type: MessageType;
   data?: PageMetricsData;
   url?: string;
+  page?: number;
+  page_size?: number;
 }
 
 export interface ChromeResponse<T = unknown> {

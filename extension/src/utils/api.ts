@@ -1,14 +1,5 @@
-/**
- * API utility functions for communicating with Chrome runtime
- */
+import { PageVisit, PageMetrics, ChromeMessage, ChromeResponse, PaginatedResponse } from '../types';
 
-import { PageVisit, PageMetrics, ChromeMessage, ChromeResponse } from '../types';
-
-/**
- * Sends a message to the Chrome runtime and returns the response
- * @param message - The message to send
- * @returns Promise with the response data
- */
 const sendChromeMessage = <T>(message: ChromeMessage): Promise<T> => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (response: ChromeResponse<T>) => {
@@ -28,11 +19,6 @@ const sendChromeMessage = <T>(message: ChromeMessage): Promise<T> => {
   });
 };
 
-/**
- * Fetches metrics for a given URL
- * @param url - The URL to fetch metrics for
- * @returns Promise with page metrics
- */
 export const getMetrics = (url: string): Promise<PageMetrics> => {
   return sendChromeMessage<PageMetrics>({
     type: 'GET_METRICS',
@@ -40,11 +26,6 @@ export const getMetrics = (url: string): Promise<PageMetrics> => {
   });
 };
 
-/**
- * Fetches visit history for a given URL
- * @param url - The URL to fetch visits for
- * @returns Promise with array of page visits
- */
 export const getVisits = (url: string): Promise<PageVisit[]> => {
   return sendChromeMessage<PageVisit[]>({
     type: 'GET_VISITS',
@@ -52,10 +33,22 @@ export const getVisits = (url: string): Promise<PageVisit[]> => {
   });
 };
 
-/**
- * Gets the currently active tab
- * @returns Promise with the active tab
- */
+export const getVisitsPaginated = (url: string, page: number = 1, pageSize: number = 50): Promise<PaginatedResponse<PageVisit>> => {
+  return sendChromeMessage<PaginatedResponse<PageVisit>>({
+    type: 'GET_VISITS_PAGINATED',
+    url,
+    page,
+    page_size: pageSize,
+  });
+};
+
+export const deleteVisits = (url: string): Promise<{ deleted: number; url: string }> => {
+  return sendChromeMessage<{ deleted: number; url: string }>({
+    type: 'DELETE_VISITS',
+    url,
+  });
+};
+
 export const getCurrentTab = async (): Promise<chrome.tabs.Tab> => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

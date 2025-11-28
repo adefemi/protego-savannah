@@ -1,14 +1,14 @@
 import { fetchWithRetry } from './network';
 import { API_BASE_URL } from './config';
-import { PageMetrics, PageMetricsData, PageVisit } from '../types';
+import { PageMetrics, PageMetricsData, PageVisit, PaginatedResponse } from '../types';
+import { 
+  isPageVisit, 
+  isPageVisitArray, 
+  isPageMetrics, 
+  isPageMetricsData,
+  validateOrThrow 
+} from './validators';
 
-/**
- * A wrapper around fetchWithRetry to handle API requests to the backend.
- * It automatically prepends the base API URL and parses the JSON response.
- * @param endpoint - The API endpoint to call (e.g., 'api/visits').
- * @param options - RequestInit options for fetch.
- * @returns A promise that resolves with the JSON response data.
- */
 export async function makeApiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
   try {
     const url = `${API_BASE_URL}/${endpoint.startsWith('/') ? endpoint.substring(1) : endpoint}`;
@@ -17,40 +17,92 @@ export async function makeApiRequest<T>(endpoint: string, options?: RequestInit)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown API error';
     console.error(`API request failed for endpoint "${endpoint}": ${errorMessage}`);
-    // Re-throw the original error to be handled by the caller.
     throw error;
   }
 }
 
-/**
- * Saves a page visit to the backend API.
- * @param data - Page metrics data to save.
- * @returns Promise with the saved visit data.
- */
 export async function savePageVisit(data: PageMetricsData): Promise<PageVisit> {
-  return makeApiRequest<PageVisit>('api/visits', {
+  validateOrThrow(data, isPageMetricsData, 'Invalid page metrics data');
+  
+  const result = await makeApiRequest<unknown>('api/visits', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
+  
+  return validateOrThrow(result, isPageVisit, 'Invalid API response for savePageVisit');
 }
 
-/**
- * Fetches all visits for a given URL from the backend API.
- * @param url - The URL to fetch visits for.
- * @returns Promise with an array of visits.
- */
 export async function getVisits(url: string): Promise<PageVisit[]> {
-  return makeApiRequest<PageVisit[]>(`api/visits?url=${encodeURIComponent(url)}`);
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL parameter');
+  }
+  
+  const result = await makeApiRequest<unknown>(`api/visits?url=${encodeURIComponent(url)}`);
+  return validateOrThrow(result, isPageVisitArray, 'Invalid API response for getVisits');
 }
 
-/**
- * Fetches current metrics for a given URL from the backend API.
- * @param url - The URL to fetch metrics for.
- * @returns Promise with page metrics.
- */
+export async function getVisitsPaginated(
+  url: string, 
+  page: number = 1, 
+  pageSize: number = 50
+): Promise<PaginatedResponse<PageVisit>> {
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL parameter');
+  }
+  
+  const result = await makeApiRequest<PaginatedResponse<PageVisit>>(
+    `api/visits/paginated?url=${encodeURIComponent(url)}&page=${page}&page_size=${pageSize}`
+  );
+  
+  return result;
+}
+
+export async function deleteVisits(url: string): Promise<{ deleted: number; url: string }> {
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL parameter');
+  }
+  
+  const result = await makeApiRequest<{ deleted: number; url: string }>(
+    `api/visits?url=${encodeURIComponent(url)}`,
+    { method: 'DELETE' }
+  );
+  
+  return result;
+}
+
 export async function getMetrics(url: string): Promise<PageMetrics> {
-  return makeApiRequest<PageMetrics>(`api/metrics/current?url=${encodeURIComponent(url)}`);
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL parameter');
+  }
+  
+  const result = await makeApiRequest<unknown>(`api/metrics/current?url=${encodeURIComponent(url)}`);
+  return validateOrThrow(result, isPageMetrics, 'Invalid API response for getMetrics');
+}
+
+export async function exportVisitsAsJSON(visits: PageVisit[]): Promise<string> {
+  return JSON.stringify(visits, null, 2);
+}
+
+export async function exportVisitsAsCSV(visits: PageVisit[]): Promise<string> {
+  if (visits.length === 0) return '';
+  
+  const headers = ['ID', 'URL', 'Date Visited', 'Links', 'Words', 'Images'];
+  const rows = visits.map(v => [
+    v.id,
+    v.url,
+    new Date(v.datetime_visited).toLocaleString(),
+    v.link_count,
+    v.word_count,
+    v.image_count
+  ]);
+  
+  const csv = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
+  
+  return csv;
 }
